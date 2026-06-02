@@ -57,6 +57,24 @@ def _request(*args, **kwargs):
     return resp
 
 
+def _parse_memory_limit_byte(value: str, unit: str) -> int:
+    if unit == 'KB':
+        return int(float(value) * 1000)
+    if unit == 'MB':
+        return int(float(value) * 1000 * 1000)
+    if unit == 'KiB':
+        return int(float(value) * 1024)
+    if unit == 'MiB':
+        return int(float(value) * 1024 * 1024)
+    assert False
+
+
+def _parse_memory_limit_byte_with_unit(value_with_unit: str) -> int:
+    matched = re.search(r'^([0-9.]+) (KB|MB|KiB|MiB)$', value_with_unit)
+    assert matched
+    return _parse_memory_limit_byte(matched.group(1), matched.group(2))
+
+
 class AtCoderService(onlinejudge.type.Service):
     def login(self, *, get_credentials: onlinejudge.type.CredentialsProvider, session: Optional[requests.Session] = None) -> None:
         """
@@ -542,12 +560,7 @@ class AtCoderProblemData(ProblemData):
             time_limit_msec = int(float(utils.remove_suffix(tds[2].text, ' sec')) * 1000)
         else:
             assert False
-        if tds[3].text.endswith(' KB'):
-            memory_limit_byte = int(float(utils.remove_suffix(tds[3].text, ' KB')) * 1000)
-        elif tds[3].text.endswith(' MB'):
-            memory_limit_byte = int(float(utils.remove_suffix(tds[3].text, ' MB')) * 1000 * 1000)  # TODO: confirm this is MB truly, not MiB
-        else:
-            assert False
+        memory_limit_byte = _parse_memory_limit_byte_with_unit(tds[3].text)
         if len(tds) == 5:
             assert tds[4].text.strip() in ('', 'Submit', '提出')
 
@@ -583,17 +596,12 @@ class AtCoderProblemData(ProblemData):
             assert False
 
         # When login as the admin, a link is added after memory limit. See https://github.com/online-judge-tools/api-client/issues/90
-        parsed_memory_limit = re.search(r'^(メモリ制限|Memory Limit): ([0-9.]+) (KB|MB)', memory_limit)
+        parsed_memory_limit = re.search(r'^(メモリ制限|Memory Limit): ([0-9.]+) (KB|MB|KiB|MiB)', memory_limit)
         assert parsed_memory_limit
 
         memory_limit_value = parsed_memory_limit.group(2)
         memory_limit_unit = parsed_memory_limit.group(3)
-        if memory_limit_unit == 'KB':
-            memory_limit_byte = int(float(memory_limit_value) * 1000)
-        elif memory_limit_unit == 'MB':
-            memory_limit_byte = int(float(memory_limit_value) * 1000 * 1000)
-        else:
-            assert False
+        memory_limit_byte = _parse_memory_limit_byte(memory_limit_value, memory_limit_unit)
 
         return AtCoderProblemData(
             alphabet=alphabet,
@@ -1160,7 +1168,7 @@ class AtCoderSubmissionData(SubmissionData):
         status = tds[6].text
         if len(tds) == 10:
             exec_time_msec = int(utils.remove_suffix(tds[7].text, ' ms'))  # type: Optional[int]
-            memory_byte = int(utils.remove_suffix(tds[8].text, ' KB')) * 1000  # type: Optional[int]
+            memory_byte = _parse_memory_limit_byte_with_unit(tds[8].text)  # type: Optional[int]
         else:
             exec_time_msec = None
             memory_byte = None
