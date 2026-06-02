@@ -4,7 +4,7 @@ import unittest
 
 import requests
 
-from onlinejudge.service.atcoder import AtCoderContest, AtCoderProblem, AtCoderProblemDetailedData, AtCoderService, AtCoderSubmission
+from onlinejudge.service.atcoder import AtCoderContest, AtCoderProblem, AtCoderProblemDetailedData, AtCoderService, AtCoderSubmission, _parse_memory_limit_byte_with_unit
 from onlinejudge.type import TestCase
 
 
@@ -30,6 +30,14 @@ class AtCoderSerivceTest(unittest.TestCase):
         self.assertEqual(data.name, '東京大学プログラミングコンテスト2013')
         self.assertEqual(data.duration.total_seconds(), 5 * 60 * 60)
         self.assertEqual(data.rated_range, '-')
+
+
+class AtCoderMemoryLimitTest(unittest.TestCase):
+    def test_parse_memory_limit_byte_with_unit(self):
+        self.assertEqual(_parse_memory_limit_byte_with_unit('1000 KB'), 1000 * 1000)
+        self.assertEqual(_parse_memory_limit_byte_with_unit('1024 KiB'), 1024 * 1024)
+        self.assertEqual(_parse_memory_limit_byte_with_unit('256 MB'), 256 * 1000 * 1000)
+        self.assertEqual(_parse_memory_limit_byte_with_unit('256 MiB'), 256 * 1024 * 1024)
 
 
 class AtCoderContestTest(unittest.TestCase):
@@ -84,7 +92,7 @@ class AtCoderContestTest(unittest.TestCase):
         time.sleep(0.5)
         self.assertEqual(problems[0].download_data().time_limit_msec, 2000)
         time.sleep(0.5)
-        self.assertEqual(problems[0].download_data().memory_limit_byte, 1024 * 1000 * 1000)
+        self.assertEqual(problems[0].download_data().memory_limit_byte, 1024 * 1024 * 1024)
         time.sleep(0.5)
         self.assertEqual(problems[5].download_data().alphabet, 'F')
         time.sleep(0.5)
@@ -106,11 +114,11 @@ class AtCoderContestTest(unittest.TestCase):
         time.sleep(0.5)
         self.assertEqual(problems[0].download_data().time_limit_msec, 2525)
         time.sleep(0.5)
-        self.assertEqual(problems[0].download_data().memory_limit_byte, 246 * 1000 * 1000)
+        self.assertEqual(problems[0].download_data().memory_limit_byte, 246 * 1024 * 1024)
         time.sleep(0.5)
         self.assertEqual(problems[1].download_data().time_limit_msec, 5252)
         time.sleep(0.5)
-        self.assertEqual(problems[1].download_data().memory_limit_byte, 512 * 1000 * 1000)
+        self.assertEqual(problems[1].download_data().memory_limit_byte, 512 * 1024 * 1024)
 
     def test_list_problems_time_limit_is_less_than_msec(self):
         contest = AtCoderContest.from_url('https://atcoder.jp/contests/joi2019ho')
@@ -132,7 +140,7 @@ class AtCoderContestTest(unittest.TestCase):
         time.sleep(0.5)
         problems = contest.list_problems()
         time.sleep(0.5)
-        self.assertEqual(problems[0].download_data().memory_limit_byte, 1024 * 1000 * 1000)  # 1024 MB
+        self.assertEqual(problems[0].download_data().memory_limit_byte, 1024 * 1024 * 1024)  # 1024 MiB
         time.sleep(0.5)
         self.assertEqual(problems[1].download_data().memory_limit_byte, 0)  # 0 KB
 
@@ -195,7 +203,7 @@ class AtCoderProblemTest(unittest.TestCase):
         self.assertEqual(data.alphabet, 'A')
         self.assertEqual(data.name, 'B +/- A')
         self.assertEqual(data.time_limit_msec, 2000)
-        self.assertEqual(data.memory_limit_byte, 1024 * 1000 * 1000)
+        self.assertEqual(data.memory_limit_byte, 1024 * 1024 * 1024)
         self.assertEqual(data.score, 100)
 
     def test_get_alphabet(self):
@@ -259,7 +267,7 @@ class AtCoderProblemDataTest(unittest.TestCase):
         self.assertEqual(data.available_languages, None)
         self.assertEqual(data.html, html)
         self.assertEqual(data.input_format, None)
-        self.assertEqual(data.memory_limit_byte, 292 * 1000 * 1000)
+        self.assertEqual(data.memory_limit_byte, 292 * 1024 * 1024)
         self.assertEqual(data.name, 'プログラミングコンテスト')
         self.assertEqual(data.problem, AtCoderProblem.from_url(url))
         self.assertEqual(data.sample_cases, [
@@ -281,7 +289,7 @@ class AtCoderProblemDataTest(unittest.TestCase):
         self.assertEqual(data.available_languages, None)
         self.assertEqual(data.html, html)
         self.assertEqual(data.input_format, '\r\n<var>R</var> <var>C</var>\r\n<var>X</var> <var>Y</var>\r\n<var>D</var> <var>L</var>\r\n')
-        self.assertEqual(data.memory_limit_byte, 64 * 1000 * 1000)
+        self.assertEqual(data.memory_limit_byte, 64 * 1024 * 1024)
         self.assertEqual(data.name, 'AtCoder社の冬')
         self.assertEqual(data.problem, AtCoderProblem.from_url(url))
         self.assertEqual(data.sample_cases, [
@@ -304,7 +312,7 @@ class AtCoderProblemDataTest(unittest.TestCase):
         self.assertEqual(data.available_languages, None)
         self.assertEqual(data.html, html)
         self.assertEqual(data.input_format, '<var>N</var>\r\n')
-        self.assertEqual(data.memory_limit_byte, 1024 * 1000 * 1000)
+        self.assertEqual(data.memory_limit_byte, 1024 * 1024 * 1024)
         self.assertEqual(data.name, '756')
         self.assertEqual(data.problem, AtCoderProblem.from_url(url))
         self.assertEqual(data.sample_cases, [
@@ -326,7 +334,7 @@ class AtCoderProblemDataTest(unittest.TestCase):
         self.assertEqual(data.available_languages, None)
         self.assertEqual(data.html, html)
         self.assertEqual(data.input_format, '<var>N</var> <var>K</var>\r\n<var>A_0</var> <var>A_1</var> <var>\\cdots</var> <var>A_{N-1}</var>\r\n')
-        self.assertEqual(data.memory_limit_byte, 1024 * 1000 * 1000)
+        self.assertEqual(data.memory_limit_byte, 1024 * 1024 * 1024)
         self.assertEqual(data.name, 'Do Not Duplicate')
         self.assertEqual(data.problem, AtCoderProblem.from_url(url))
         self.assertEqual(data.sample_cases, [
@@ -349,7 +357,7 @@ class AtCoderProblemDataTest(unittest.TestCase):
         self.assertEqual(data.available_languages, None)
         self.assertEqual(data.html, html)
         self.assertEqual(data.input_format, None)
-        self.assertEqual(data.memory_limit_byte, 64 * 1000 * 1000)
+        self.assertEqual(data.memory_limit_byte, 64 * 1024 * 1024)
         self.assertEqual(data.name, '天下一株式会社採用情報')
         self.assertEqual(data.problem, AtCoderProblem.from_url(url))
         self.assertEqual(data.sample_cases, [])
@@ -367,7 +375,7 @@ class AtCoderProblemDataTest(unittest.TestCase):
         self.assertEqual(data.available_languages, None)
         self.assertEqual(data.html, html)
         self.assertEqual(data.input_format, None)
-        self.assertEqual(data.memory_limit_byte, 256 * 1000 * 1000)
+        self.assertEqual(data.memory_limit_byte, 256 * 1024 * 1024)
         self.assertEqual(data.name, 'Graph Cut')
         self.assertEqual(data.problem, AtCoderProblem.from_url(url))
         self.assertEqual(data.sample_cases, [
